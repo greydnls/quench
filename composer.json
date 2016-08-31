@@ -1,0 +1,28 @@
+{
+    "name": "grey/quench",
+    "description": "Hydrating Entities based on arrays",
+    "type": "hydration",
+    "require-dev": {
+        "phpunit/phpunit": "^5.4.2",
+        "refinery29/test-util": "^0.8.2",
+        "refinery29/php-cs-fixer-config": "^0.4.20"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Graham Daniels",
+            "email": "greydnls@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "Refinery29\\Quench\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Refinery29\\Quench\\Test\\": "test"
+        }
+    }
+}
