@@ -11,36 +11,7 @@ class Manager
     /**
      * @var HydratorInterface[]
      */
-    private $hydrators;
-
-    /**
-     * @param array|null $data
-     * @param string $entityClass
-     *
-     * @throws HydrationException
-     *
-     * @return Subject
-     */
-    public function hydrate(array $data = null, $entityClass)
-    {
-        if ($data == null) {
-            return;
-        }
-
-        $hydrator = $this->getHydrator($entityClass);
-
-        if (array_key_exists('id', $data)) {
-            return $this->hydrateExisting($hydrator, $data);
-        }
-
-        foreach ($hydrator->getRelationshipsToHydrate() as $relationship){
-            if (array_key_exists($relationship, $data) && $data[$relationship] !== null) {
-                $data[$relationship] = $this->hydrateRelationship($hydrator, $relationship, $data);
-            }
-        }
-
-        return call_user_func_array([$entityClass, 'fromArray'], [$data]);
-    }
+    private $hydrators = [];
 
     /**
      * @param HydratorInterface $hydrator
@@ -58,34 +29,44 @@ class Manager
         $this->hydrators[$entityClass] = $hydrator;
     }
 
+    /**
+     * @param string $entityClass
+     * @param array|null $data
+     *
+     * @throws HydrationException
+     *
+     * @return Subject
+     */
+    public function hydrate($entityClass, array $data = null)
+    {
+        if ($data == null) {
+            return;
+        }
+
+        $hydrator = $this->getHydrator($entityClass);
+
+        if (array_key_exists('id', $data)) {
+            return $this->hydrateExisting($hydrator, $data);
+        }
+
+        return $this->hydrateNew($entityClass, $hydrator, $data);
+    }
+
     private function getHydrator($entity)
     {
-        if (isset($this->hydrators[$entity])){
+        if (array_key_exists($entity, $this->hydrators)){
             return $this->hydrators[$entity];
         }
 
-        throw new HydrationException();
+        throw HydrationException::notFound();
     }
 
     /**
      * @param HydratorInterface $hydrator
-     * @param string $relationship
-     * @param array $data
-     * @return mixed
-     *
+     * @param $data
+     * @return Subject
      * @throws HydrationException
      */
-    private function hydrateRelationship(HydratorInterface $hydrator, $relationship, array $data)
-    {
-        $methodName = 'hydrate' . ucfirst($relationship);
-
-        if (!method_exists($hydrator, $methodName)){
-            throw HydrationException::invalidRelationshipDefined();
-        }
-
-        return $hydrator->$methodName($data);
-    }
-
     private function hydrateExisting(HydratorInterface $hydrator, $data)
     {
         if (method_exists($hydrator, 'hydrateExisting')) {
@@ -106,16 +87,75 @@ class Manager
             if (array_key_exists($relationship, $data)) {
                 $setterMethod = $this->getSetterMethod($relationship);
 
-                $hydratedRelationship = $this->hydrateRelationship($hydrator, $relationship, $data);
-                $subject->$setterMethod($hydratedRelationship);
+                if (method_exists($subject, $setterMethod)){
+                    $hydratedRelationship = $this->hydrateRelationship($hydrator, $relationship, $data);
+                    $subject->$setterMethod($hydratedRelationship);
+                }
             }
         }
 
         return $subject;
+    }
 
+
+    /**
+     * @param string $entityClass
+     * @param HydratorInterface $hydrator
+     * @param array $data
+     *
+     * @return Subject
+     *
+     * @throws HydrationException
+     */
+    private function hydrateNew($entityClass, HydratorInterface $hydrator, array $data)
+    {
+        foreach ($hydrator->getRelationshipsToHydrate() as $relationship) {
+            if (array_key_exists($relationship, $data) && $data[$relationship] !== null) {
+                $data[$relationship] = $this->hydrateRelationship($hydrator, $relationship, $data);
+            }
+        }
+
+        if (method_exists($hydrator, 'hydrateNew')) {
+            return $hydrator->hydrateNew($data);
+        }
+
+        return call_user_func_array([$entityClass, 'fromArray'], [$data]);
+    }
+
+
+    /**
+     * @param HydratorInterface $hydrator
+     * @param string $relationship
+     * @param array $data
+     *
+     * @return mixed
+     *
+     * @throws HydrationException
+     */
+    private function hydrateRelationship(HydratorInterface $hydrator, $relationship, array $data)
+    {
+        $methodName = 'hydrate' . $this->camelize($relationship);
+
+        if (!method_exists($hydrator, $methodName)){
+            throw HydrationException::invalidRelationshipDefined();
+        }
+
+        return $hydrator->$methodName($data);
     }
 
     private function getSetterMethod($fieldName)
+    {
+        $fieldName = $this->camelize($fieldName);
+
+        return 'set' . $fieldName;
+    }
+
+    /**
+     * @param string $fieldName
+     *
+     * @return mixed|string
+     */
+    private function camelize($fieldName)
     {
         $first = substr($fieldName, 0, 1);
         $rest = substr($fieldName, 1, strlen($fieldName) - 1);
@@ -136,7 +176,6 @@ class Manager
             },
             $fieldName
         );
-
-        return 'set' . $fieldName;
+        return $fieldName;
     }
 }

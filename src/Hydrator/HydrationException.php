@@ -13,4 +13,9 @@ class HydrationException extends \Exception
     {
         return new self;
     }
+
+    public static function notFound()
+    {
+        return new self;
+    }
 }
