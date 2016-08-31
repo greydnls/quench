@@ -17,12 +17,12 @@
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
-            "Refinery29\\Quench\\": "src"
+            "Grey\\Quench\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Refinery29\\Quench\\Test\\": "test"
+            "Grey\\Quench\\Test\\": "test"
         }
     }
 }

@@ -6,7 +6,8 @@ interface HydratorInterface
 {
     /**
      * @param $id
-     * @return Subject
+     *
+     * @return HydrationSubject
      */
     public function findExisting($id);
 

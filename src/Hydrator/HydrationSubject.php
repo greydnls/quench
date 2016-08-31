@@ -3,12 +3,12 @@
 namespace Grey\Quench\Hydrator;
 
 
-interface Subject
+interface HydrationSubject
 {
     /**
      * @param array|null $data
      *
-     * @return Subject
+     * @return HydrationSubject
      */
     public function fromArray(array $data = null);
 }

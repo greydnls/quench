@@ -4,7 +4,7 @@ namespace Grey\Quench;
 
 use Grey\Quench\Hydrator\HydrationException;
 use Grey\Quench\Hydrator\HydratorInterface;
-use Grey\Quench\Hydrator\Subject;
+use Grey\Quench\Hydrator\HydrationSubject;
 
 class Manager
 {
@@ -22,7 +22,7 @@ class Manager
     {
         $entityClass = $hydrator->getEntityClass();
 
-        if (!$entityClass instanceof Subject){
+        if (!$entityClass instanceof HydrationSubject){
             throw HydrationException::invalidEntity();
         }
 
@@ -35,7 +35,7 @@ class Manager
      *
      * @throws HydrationException
      *
-     * @return Subject
+     * @return HydrationSubject
      */
     public function hydrate($entityClass, array $data = null)
     {
@@ -64,7 +64,9 @@ class Manager
     /**
      * @param HydratorInterface $hydrator
      * @param $data
-     * @return Subject
+     *
+     * @return HydrationSubject
+     *
      * @throws HydrationException
      */
     private function hydrateExisting(HydratorInterface $hydrator, $data)
@@ -103,7 +105,7 @@ class Manager
      * @param HydratorInterface $hydrator
      * @param array $data
      *
-     * @return Subject
+     * @return HydrationSubject
      *
      * @throws HydrationException
      */
